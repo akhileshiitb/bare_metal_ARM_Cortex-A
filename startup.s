@@ -36,4 +36,34 @@ invert_bits:
 		eor x0, x0, x1
 		ret
 
+.align 2 
+.global calc_gcd 
+.type calc_gcd, %function 
+calc_gcd: 
+repeat:
+		cmp w0, w1 			
+		b.eq done
+		subs wzr, w0, w1 
+		b.mi smaller
+		sub w0, w0, w1
+		b repeat 
+smaller:
+		sub w1, w1, w0 
+		b repeat 
+done:
+		ret
+
+.align 2 
+.global my_memcpy
+.type my_memcpy, %function 
+my_memcpy:
+iterate:
+		subs w2, w2, 1 
+		b.mi exit
+		ldrb w3, [x0], 1 
+		strb w3, [x1], 1 
+		b iterate
+exit:
+		ret
+
 .end

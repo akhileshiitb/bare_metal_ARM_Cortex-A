@@ -5,6 +5,16 @@ uint64_t gVal = 59;
 /* Function implemented in assembly to invert bits of number */
 extern uint64_t invert_bits(uint64_t val); 
 
+/* Assembly function to calculate GCD of two words */
+/* This helps to understand data processing and flow control of ARM ISA, Excercise from offical ARM documentaion */
+extern uint32_t calc_gcd(uint32_t num1, uint32_t num2);
+
+/* Assembly function for memory copy my_memcpy 
+ * Taken from ARM official excercises. 
+ * Helps: Understand accessing memory. 
+ * */
+extern void my_memcpy(uint8_t * src, uint8_t * dest, uint32_t size_bytes);
+
 void print_serial(uint8_t * str)
 {
 		/* Prints string */
@@ -36,6 +46,8 @@ uint64_t add(uint32_t a, uint32_t b)
 int main()
 {
 		volatile uint64_t main_var = 20; 
+		uint8_t src_arr[4] = {1, 2, 3, 4}; 
+		uint8_t dest_arr[4] = {0, 0, 0, 0}; 
 
 		print_serial("Starting Execution on Cortex-A \n");
 
@@ -48,6 +60,10 @@ int main()
 		main_var++; 
 
 		main_var = invert_bits(0x0U);
+		main_var = (uint64_t)calc_gcd(50U, 75U);
+
+		/* Test my_memcpy function */
+		my_memcpy(src_arr, dest_arr, 2U);
 
 		print_serial("Done with Execution on Cortex-A \n");
 
