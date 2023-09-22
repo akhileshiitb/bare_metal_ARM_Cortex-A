@@ -28,4 +28,12 @@ _start:
 loop:
 	bl loop
 
+.align 2 
+.global invert_bits 
+.type invert_bits, %function
+invert_bits: 		
+		mvn x1, xzr  
+		eor x0, x0, x1
+		ret
+
 .end
