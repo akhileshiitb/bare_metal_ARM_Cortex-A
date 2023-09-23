@@ -67,6 +67,11 @@ int main()
 
 		print_serial("Done with Execution on Cortex-A \n");
 
+		// create data abort system exception 
+		// This isexpected to generate sync falut current spx
+		// Observe if program flow goes to Vector table of ELx
+		*(uint32_t *) 0xFFFFFFFF = 0xDD; 
+
 		return 0; 
 }
 
