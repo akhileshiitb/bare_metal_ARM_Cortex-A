@@ -1,6 +1,8 @@
 // startup script for Aarch64 CPU 
 
 .extern main 
+.extern el0_entry
+.extern el1_svc_handler
 
 .text
 .align 2 
@@ -120,6 +122,34 @@ current_el_sp1_serr:
 		mov x10, 0xDDDD
 		b current_el_sp1_serr	
 
+// Exceptions taken from rl0 to  EL1 Aarch64 execution state 
+// synchronous exceptions
+.balign 0x80
+el0_el1_sync:
+		// Assume this is SVC call do SVC processing
+		// Get SVC number in x0 and call SVC handler
+		mov x0, x10
+		// save the link register on el1 stack
+		stp x29, x30, [sp, #-16]!
+		bl el1_svc_handle
+		ldp x29, x30, [sp], 16
+		eret
+// IRQ
+.balign 0x80
+el0_el1_irq:
+		b el0_el1_irq  
+
+//FIQ
+.balign 0x80
+el0_el1_fiq:
+		b el0_el1_fiq 
+
+// SError
+.balign 0x80
+el0_el1_serr:
+		mov x10, 0xDDDD
+		b el0_el1_serr 
+
 // vector table EL2
 .balign 2048
 vector_el2:
@@ -128,5 +158,16 @@ vector_el2:
 .balign 2048
 vector_el3:
 		b vector_el3	
+
+// code to enter into el0 from el1
+.align 2 
+.global enter_el0
+.type enter_el0, %function
+enter_el0:
+		mov x0, 0b000000	// EL0 A64 mode
+		msr SPSR_EL1, x0
+		ldr x0, =el0_entry  // get entry of el0
+		msr ELR_EL1, x0    // Update exception link register
+		eret 		// call exception return 
 
 .end

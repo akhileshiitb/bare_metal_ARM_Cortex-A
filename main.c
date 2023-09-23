@@ -15,6 +15,10 @@ extern uint32_t calc_gcd(uint32_t num1, uint32_t num2);
  * */
 extern void my_memcpy(uint8_t * src, uint8_t * dest, uint32_t size_bytes);
 
+/* EL1 function to enter into el0 */
+extern void enter_el0();
+
+
 void print_serial(uint8_t * str)
 {
 		/* Prints string */
@@ -49,7 +53,7 @@ int main()
 		uint8_t src_arr[4] = {1, 2, 3, 4}; 
 		uint8_t dest_arr[4] = {0, 0, 0, 0}; 
 
-		print_serial("Starting Execution on Cortex-A \n");
+		print_serial("Starting Execution on Cortex-A in EL1 \n");
 
 		while (main_var != 0)
 		{
@@ -67,11 +71,32 @@ int main()
 
 		print_serial("Done with Execution on Cortex-A \n");
 
+		// Enter EL0 
+		// Code to enter El0 and execute el0_main
+		enter_el0();
+
 		// create data abort system exception 
 		// This isexpected to generate sync falut current spx
 		// Observe if program flow goes to Vector table of ELx
 		*(uint32_t *) 0xFFFFFFFF = 0xDD; 
 
 		return 0; 
+}
+
+/* SVC handler in EL1 */
+void el1_svc_handler(uint64_t syscall_number){
+
+		switch (syscall_number){
+				case 1:
+						print_serial("entered in EL1 with system call number: 1 \n");
+						break; 
+				case 2: 
+						print_serial("entered in EL1 with system call number: 2 \n");
+						break;
+				default:
+						print_serial("entered in EL1 but system call is not implemented \n");
+						break;
+		}
+
 }
 
