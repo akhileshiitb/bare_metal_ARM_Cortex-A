@@ -131,7 +131,7 @@ el0_el1_sync:
 		mov x0, x10
 		// save the link register on el1 stack
 		stp x29, x30, [sp, #-16]!
-		bl el1_svc_handle
+		bl el1_svc_handler
 		ldp x29, x30, [sp], 16
 		eret
 // IRQ
