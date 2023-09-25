@@ -39,6 +39,11 @@ enter_el2:
 		orr x0, x0, #(1<<0) // NS bit EL1 non secure world
 		msr SCR_EL3, x0
 
+		// enable HVC instruction for EL1 and EL2
+		mrs x0, SCR_EL3
+		orr x0, x0, #(1<<8)
+		msr SCR_EL3, x0
+
 		// set spsr of el3 to el2 exception level
 		mov x0, 0b1001
 		msr spsr_el3, x0

@@ -36,6 +36,14 @@ loop:
 	bl loop
 
 .align 2 
+.global system_hvc_call
+.type system_hvc_call, %function 
+system_hvc_call:
+		mov x10, x0 
+		hvc #0 
+		ret
+
+.align 2 
 .global invert_bits 
 .type invert_bits, %function
 invert_bits: 		
@@ -150,10 +158,6 @@ el0_el1_serr:
 		mov x10, 0xDDDD
 		b el0_el1_serr 
 
-// vector table EL2
-.balign 2048
-vector_el2:
-		b vector_el2	
 // vector table EL3
 .balign 2048
 vector_el3:

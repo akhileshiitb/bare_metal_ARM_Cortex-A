@@ -23,3 +23,21 @@ void main_el2()
 		
 }
 
+/* HVC call handeler in EL2 */
+void el2_hvc_handler(uint64_t hvccall_number){
+
+		switch (hvccall_number){
+				case 1:
+						print_serial("entered in EL2 with HVC call number: 1 \n");
+						break; 
+				case 2: 
+						print_serial("entered in EL2 with HVC call number: 2 \n");
+						break;
+				default:
+						print_serial("entered in EL2 but HVC call is not implemented \n");
+						break;
+		}
+
+}
+
+

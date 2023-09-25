@@ -18,6 +18,9 @@ extern void my_memcpy(uint8_t * src, uint8_t * dest, uint32_t size_bytes);
 /* EL1 function to enter into el0 */
 extern void enter_el0();
 
+/* HVC call function */
+extern void system_hvc_call(uint64_t hvc_call_no);
+
 
 void print_serial(uint8_t * str)
 {
@@ -70,6 +73,11 @@ int main()
 		my_memcpy(src_arr, dest_arr, 2U);
 
 		print_serial("Done with Execution on Cortex-A \n");
+
+		// Checkout Hipervisor calls HVC calls
+		system_hvc_call(1U);
+		system_hvc_call(2U);
+		system_hvc_call(34);
 
 		// Enter EL0 
 		// Code to enter El0 and execute el0_main
