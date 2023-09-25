@@ -56,8 +56,10 @@ int main()
 		uint8_t src_arr[4] = {1, 2, 3, 4}; 
 		uint8_t dest_arr[4] = {0, 0, 0, 0}; 
 
-		print_serial("Starting Execution on Cortex-A in EL1 \n");
+		print_serial("###########");
+		print_serial("Starting Cortex A in EL1 exception Level \n");
 
+		main_var = 0;
 		while (main_var != 0)
 		{
 		; 
@@ -72,12 +74,19 @@ int main()
 		/* Test my_memcpy function */
 		my_memcpy(src_arr, dest_arr, 2U);
 
-		print_serial("Done with Execution on Cortex-A \n");
-
 		// Checkout Hipervisor calls HVC calls
+		print_serial("[EL1] Making HVC system call to EL2 \n");
 		system_hvc_call(1U);
+		print_serial("[EL1] Back in EL1 after HVC system call \n");
+
+		print_serial("[EL1] Making HVC system call to EL2 \n");
 		system_hvc_call(2U);
+		print_serial("[EL1] Back in EL1 after HVC system call \n");
+
+		print_serial("[EL1] Making HVC system call to EL2 \n");
 		system_hvc_call(34);
+		print_serial("[EL1] Back in EL1 after HVC system call \n");
+
 
 		// Enter EL0 
 		// Code to enter El0 and execute el0_main
@@ -96,13 +105,13 @@ void el1_svc_handler(uint64_t syscall_number){
 
 		switch (syscall_number){
 				case 1:
-						print_serial("entered in EL1 with system call number: 1 \n");
+						print_serial("[EL1] Entered in EL1 with system call number: 1 \n");
 						break; 
 				case 2: 
-						print_serial("entered in EL1 with system call number: 2 \n");
+						print_serial("[EL1] Entered in EL1 with system call number: 2 \n");
 						break;
 				default:
-						print_serial("entered in EL1 but system call is not implemented \n");
+						print_serial("[EL1] Entered in EL1 but system call is not implemented \n");
 						break;
 		}
 
