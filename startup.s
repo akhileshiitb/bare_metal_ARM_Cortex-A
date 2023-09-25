@@ -158,11 +158,6 @@ el0_el1_serr:
 		mov x10, 0xDDDD
 		b el0_el1_serr 
 
-// vector table EL3
-.balign 2048
-vector_el3:
-		b vector_el3	
-
 // code to enter into el0 from el1
 .align 2 
 .global enter_el0

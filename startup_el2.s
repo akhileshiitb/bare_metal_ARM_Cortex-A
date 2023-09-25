@@ -49,6 +49,14 @@ enter_el1:
 		msr ELR_EL2, x0
 		eret
 
+.align 2 
+.global system_smc_call
+.type system_smc_call, %function 
+system_smc_call:
+		mov x10, x0
+		smc #0
+		ret
+
 
 // vector table EL2
 /* vector table needs to be 2KB aligned, hence use .balign to move location counter*/

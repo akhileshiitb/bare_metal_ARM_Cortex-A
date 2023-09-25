@@ -6,6 +6,9 @@ extern void print_serial(uint8_t * str);
 // Entry function in EL1 from El2
 extern void enter_el1();
 
+// SMC call from EL2 ro EL2
+extern void system_smc_call(uint64_t smc_call_no);
+
 void main_el2()
 {
 		volatile uint32_t main_var_el2 = 20; 
@@ -16,7 +19,9 @@ void main_el2()
 		}
 
 		// Checkout secure monitor calls here
-		// TODO
+		system_smc_call(1U);
+		system_smc_call(2U);
+		system_smc_call(8U);
 
 		// Generate the exception and goto EL1
 		enter_el1();
