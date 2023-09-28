@@ -107,6 +107,82 @@ enter_el2:
 		// call ERET instruction 
 		eret
 
+.align 2
+.global init_gic_cpu_interface
+.type init_gic_cpu_interface, %function
+init_gic_cpu_interface:
+		// Enable Access to CPU interface system registers for all ELs
+		mrs x0, ICC_SRE_EL3
+		orr x0, x0, #(0x1)
+		msr ICC_SRE_EL3, x0
+		mrs x0, ICC_SRE_EL2
+		orr x0, x0, #(0x1)
+		msr ICC_SRE_EL2, x0
+		mrs x0, ICC_SRE_EL1
+		orr x0, x0, #(0x1)
+		msr ICC_SRE_EL1, x0
+
+		// set priority mask and binary point registers 
+		// Priority mask: Lowest priority = 0xFF
+		mov x0, #(0xFF) // lowest priority possible
+		msr ICC_PMR_EL1, x0
+		// Binary point for preemption point = 4
+		mov x0, 0x4  // 4 bits split
+		msr ICC_BPR1_EL1, x0  // group 1 preemption setting
+		msr ICC_BPR0_EL1, x0  // group 0 preemption setting
+
+		// configution EOI(end of interrupt)
+		mrs x0, ICC_CTLR_EL3
+		mov x2, #(1<<1)
+		mvn x1, x2 
+		and x0, x0, x1
+		msr ICC_CTLR_EL3, x0
+		mrs x0, ICC_CTLR_EL1 // for current sec state
+		mov x2, #(7<<2)
+		mvn x1, x2 
+		and x0, x0, x1
+		msr ICC_CTLR_EL1, x0
+
+		// Enable signalling each interrupt group
+		// Enable Group 0 interrupts
+		mov x0, #(0x1)
+		msr ICC_IGRPEN0_EL1, x0
+		mov x0, #(0x3)
+		msr ICC_IGRPEN1_El3, x0 // enable both S/NS GRP1 interrupts
+
+		// unmask CPU interrupts all DAIF
+		mov x0, #0
+		msr DAIF, x0
+
+		// route IRQ and FIQ to EL3
+		// route both IRQ and FIQ to EL3
+		mov x0, 0x6
+		mrs x1, SCR_EL3
+		orr x1, x1, x0
+		msr SCR_EL3, x1
+
+		ret
+
+.align 2 
+.global generate_sgi_interrupt
+.type generate_sgi_interrupt, %function 
+generate_sgi_interrupt: 
+		// store corruptable registers
+		stp x29, x30, [sp, #-16]!
+		// FYI: Read the affinity value of current processor
+		mrs x10, MPIDR_EL1
+		// trigger the SGI 
+		mov x6, #0
+		orr x6, x6, x0 , lsl 16
+		orr x6, x6, x1, lsl 32
+		orr x6, x6, x2, lsl 48
+		orr x6, x6, x3, lsl 0
+		orr x6, x6, x4, lsl 24  // Interrupt ID
+		msr ICC_SGI0R_EL1, x6
+		ldp x29, x30, [sp, #16]
+		ret
+		
+		
 
 // vector table EL3
 /* vector table needs to be 2KB aligned, hence use .balign to move location counter*/
@@ -147,7 +223,17 @@ current_el3_sp3_irq:
 //FIQ
 .balign 0x80
 current_el3_sp3_fiq:
-		b current_el3_sp3_fiq	
+		stp x29, x30, [sp, #-16]!
+		stp x0, x1, [sp, #-16]!
+		// Acknowledge the group 0 interrupt
+		mrs x0, ICC_IAR0_EL1
+		// call the interrupt handler
+		bl el3_fiq_handler
+		// Mark the EOI (End of Interrupt)
+		msr ICC_EOIR0_EL1, x0
+		ldp x29, x30, [sp, #16]
+		ldp x0, x1, [sp, #16]
+	    eret	
 
 // SError
 .balign 0x80

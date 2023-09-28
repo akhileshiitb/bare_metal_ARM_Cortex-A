@@ -8,6 +8,229 @@ extern void enter_el2();
 
 extern uint64_t _ttb_1_base;
 
+extern void init_gic_cpu_interface(); 
+
+extern void generate_sgi_interrupt(uint8_t affinity1, uint8_t affinity2, uint8_t affinity3, uint16_t target, uint8_t INTID);
+
+// GIC configurations
+//**********************
+// Register definitions 
+//
+typedef struct {
+   volatile uint32_t                         LOWER;
+   volatile uint32_t                         UPPER;
+} gic_d_irouter;
+
+typedef struct {
+   volatile uint32_t                         CTLR;
+   volatile uint32_t                         TYPER;
+   volatile uint32_t                         IIDR;
+   volatile uint8_t                          Rsvd0[4];
+   volatile uint32_t                         STATUSR;
+   volatile uint8_t                          Rsvd1[44];
+   volatile uint32_t                         SETSPI_NSR;
+   volatile uint8_t                          Rsvd2[4];
+   volatile uint32_t                         CLRSPI_NSR;
+   volatile uint8_t                          Rsvd3[4];
+   volatile uint32_t                         SETSPI_SR;
+   volatile uint8_t                          Rsvd4[4];
+   volatile uint32_t                         CLRSPI_SR;
+   volatile uint8_t                          Rsvd5[36];
+   volatile uint32_t                         IGROUPR_SGI_PPI;
+   volatile uint32_t                         IGROUPR_SPI[30];
+   volatile uint8_t                          Rsvd6[4];
+   volatile uint32_t                         ISENABLER_SGI_PPI;
+   volatile uint32_t                         ISENABLER_SPI[30];
+   volatile uint8_t                          Rsvd7[4];
+   volatile uint32_t                         ICENABLER_SGI_PPI;
+   volatile uint32_t                         ICENABLER_SPI[30];
+   volatile uint8_t                          Rsvd8[4];
+   volatile uint32_t                         ISPENDR_SGI_PPI;
+   volatile uint32_t                         ISPENDR_SPI[30];
+   volatile uint8_t                          Rsvd9[4];
+   volatile uint32_t                         ICPENDR_SGI_PPI;
+   volatile uint32_t                         ICPENDR_SPI[30];
+   volatile uint8_t                          Rsvd10[4];
+   volatile uint32_t                         ISACTIVER_SGI_PPI;
+   volatile uint32_t                         ISACTIVER_SPI[30];
+   volatile uint8_t                          Rsvd11[4];
+   volatile uint32_t                         ICACTIVER_SGI_PPI;
+   volatile uint32_t                         ICACTIVER_SPI[30];
+   volatile uint8_t                          Rsvd12[4];
+   volatile uint32_t                         IPRIORITYR_SGI_PPI[8];
+   volatile uint32_t                         IPRIORITYR_SPI[240];
+   volatile uint8_t                          Rsvd13[32];
+   volatile uint32_t                         ITARGETSR_SGI_PPI[8];
+   volatile uint32_t                         ITARGETSR_SPI[240];
+   volatile uint8_t                          Rsvd14[32];
+   volatile uint32_t                         ICFGR_SGI_PPI[2];
+   volatile uint32_t                         ICFGR_SPI[60];
+   volatile uint8_t                          Rsvd15[8];
+   volatile uint32_t                         IGRPMODR_SGI_PPI;
+   volatile uint32_t                         IGRPMODR_SPI[30];
+   volatile uint8_t                          Rsvd16[132];
+   volatile uint32_t                         NSACR[62];
+   volatile uint8_t                          Rsvd17[8];
+   volatile uint32_t                         SGIR;
+   volatile uint8_t                          Rsvd18[12];
+   volatile uint32_t                         CPENDSGIR[4];
+   volatile uint32_t                         SPENDSGIR[4];
+   volatile uint8_t                          Rsvd19[20944];
+   gic_d_irouter               				 IROUTER[960];
+   volatile uint8_t                          Rsvd20[16640];
+   volatile uint32_t                         ESTATUSR;
+   volatile uint32_t                         ERRTESTR;
+   volatile uint8_t                          Rsvd21[124];
+   volatile uint32_t                         SPISR[30];
+   volatile uint8_t                          Rsvd22[16084];
+   volatile uint32_t                         PIDR4;
+   volatile uint32_t                         PIDR5;
+   volatile uint32_t                         PIDR6;
+   volatile uint32_t                         PIDR7;
+   volatile uint32_t                         PIDR0;
+   volatile uint32_t                         PIDR1;
+   volatile uint32_t                         PIDR2;
+   volatile uint32_t                         PIDR3;
+   volatile uint32_t                         CIDR0;
+   volatile uint32_t                         CIDR1;
+   volatile uint32_t                         CIDR2;
+   volatile uint32_t                         CIDR3;
+} gic_distributor;
+
+
+/**************************************************************************
+* Hardware Region  : GICR
+**************************************************************************/
+
+/**************************************************************************
+* Register Overlay Structure
+**************************************************************************/
+
+typedef struct {
+   volatile uint32_t                         CTLR;
+   volatile uint32_t                         IIDR;
+   volatile uint32_t                         TYPER_LOWER;
+   volatile uint32_t                         TYPER_UPPER;
+   volatile uint32_t                         STATUSR;
+   volatile uint32_t                         WAKER;
+   volatile uint8_t                          Rsvd0[40];
+   volatile uint32_t                         SETLPIR_LOWER;
+   volatile uint32_t                         SETLPIR_UPPER;
+   volatile uint32_t                         CLRLPIR_LOWER;
+   volatile uint32_t                         CLRLPIR_UPPER;
+   volatile uint8_t                          Rsvd1[32];
+   volatile uint32_t                         PROPBASER_LOWER;
+   volatile uint32_t                         PROPBASER_UPPER;
+   volatile uint32_t                         PENDBASER_LOWER;
+   volatile uint32_t                         PENDBASER_UPPER;
+   volatile uint8_t                          Rsvd2[32];
+   volatile uint32_t                         INVLPIR_LOWER;
+   volatile uint32_t                         INVLPIR_UPPER;
+   volatile uint8_t                          Rsvd3[8];
+   volatile uint32_t                         INVALLR_LOWER;
+   volatile uint32_t                         INVALLR_UPPER;
+   volatile uint8_t                          Rsvd4[8];
+   volatile uint32_t                         SYNCR;
+   volatile uint8_t                          Rsvd5[65292];
+   volatile uint32_t                         PIDR4;
+   volatile uint32_t                         PIDR5;
+   volatile uint32_t                         PIDR6;
+   volatile uint32_t                         PIDR7;
+   volatile uint32_t                         PIDR0;
+   volatile uint32_t                         PIDR1;
+   volatile uint32_t                         PIDR2;
+   volatile uint32_t                         PIDR3;
+   volatile uint32_t                         CIDR0;
+   volatile uint32_t                         CIDR1;
+   volatile uint32_t                         CIDR2;
+   volatile uint32_t                         CIDR3;
+} gic_redistributor_control;
+
+
+typedef struct {
+   volatile uint8_t                          Rsvd0[128];
+   volatile uint32_t                         IGROUPR_SGI_PPI;
+   volatile uint8_t                          Rsvd1[124];
+   volatile uint32_t                         ISENABLER0;
+   volatile uint8_t                          Rsvd2[124];
+   volatile uint32_t                         ICENABLER0;
+   volatile uint8_t                          Rsvd3[124];
+   volatile uint32_t                         ISPENDR0;
+   volatile uint8_t                          Rsvd4[124];
+   volatile uint32_t                         ICPENDR0;
+   volatile uint8_t                          Rsvd5[124];
+   volatile uint32_t                         ISACTIVER0;
+   volatile uint8_t                          Rsvd6[124];
+   volatile uint32_t                         ICACTIVER0;
+   volatile uint8_t                          Rsvd7[124];
+   volatile uint32_t                         IPRIORITYR[8];
+   volatile uint8_t                          Rsvd8[2016];
+   volatile uint32_t                         ICFGR0;
+   volatile uint32_t                         ICFGR1;
+   volatile uint8_t                          Rsvd9[248];
+   volatile uint32_t                         IGRPMODR_SGI_PPI;
+   volatile uint8_t                          Rsvd10[252];
+   volatile uint32_t                         NSACR;
+   volatile uint8_t                          Rsvd11[45564];
+   volatile uint32_t                         MISCSTATUSR;
+   volatile uint8_t                          Rsvd12[124];
+   volatile uint32_t                         PPISR;
+   volatile uint8_t                          Rsvd13[16252];
+} gic_redistributor_sgi_ppi;
+
+typedef struct {
+		gic_redistributor_control          CONTROL;
+        gic_redistributor_sgi_ppi          SGI_PPI;
+} gic_redistributor;
+
+void gic_init(){
+		volatile uint32_t local_var = 0; 
+
+		// Configure Distributer  (SPIs)
+		//	Pointer to Distributor MMR space
+		gic_distributor * gic_distributor_ptr = (gic_distributor *) 0x08000000;
+
+		/* Enable Affinity rounting for both secure and non-secure
+		 * Enable interrupts from all groups: grp0, grp1_secure, grp1_ns
+		 * */
+		local_var = gic_distributor_ptr->IIDR;  // Just for information
+		gic_distributor_ptr->CTLR |= (0x3 << 4U); // ARE_NS and ARE_S bits set (Affinity enable)
+		gic_distributor_ptr->CTLR |= 0x7U; /* enable all groups*/ 
+												  
+		
+		// Configure Redistributer  (PPIs and SGIs)
+		// Pointer to Re Distributor MMR space
+		gic_redistributor * gic_redistributor_ptr = (gic_redistributor *) 0x080A0000;
+
+		/* Configure WAKER to mark PE as awake */
+		gic_redistributor_ptr->CONTROL.WAKER &= 0x5U;
+		local_var = (gic_redistributor_ptr->CONTROL.WAKER >> 2) & 0x1;
+		while (local_var != 0)
+		{
+				local_var = (gic_redistributor_ptr->CONTROL.WAKER >> 2) & 0x1;
+		}
+		// We configure SGI0 as secure group 0 interrupt 
+		// GROUP setting
+		gic_redistributor_ptr->SGI_PPI.IGROUPR_SGI_PPI &= ~(1<<0);
+
+		// Priority settings for SGI0 : give highest priority
+		gic_redistributor_ptr->SGI_PPI.IPRIORITYR[0] &=  0x0;
+
+		// Edge-level triggered: SGI edge triggered 0b10
+		gic_redistributor_ptr->SGI_PPI.ICFGR0 |=  0b10;
+
+		// Enable SGI 0 in redistributor
+		gic_redistributor_ptr->SGI_PPI.ISENABLER0  |= 0x1;
+		
+		// Configure CPU interface (using System Registers)
+		init_gic_cpu_interface();
+
+}
+
+
+
+//**********************
+
 // translation table 2 with 512 , 2 MB blocks
 uint64_t _ttb_2_base[512] __attribute__(( aligned (0x1000) ));
 
@@ -26,6 +249,8 @@ void init_l2_table(){
 		}
 }
 
+gic_redistributor * gic_redistributor_ptr = (gic_redistributor *) 0x080A0000;
+
 void main_el3(){
 
 		volatile uint32_t main_var_el3 = 20; 
@@ -36,6 +261,12 @@ void main_el3(){
 		{
 		; 
 		}
+		
+		// configure GIC to control asynchronous interrupts
+		gic_init();
+
+		// generate SGI interrupt ID=0
+		generate_sgi_interrupt(0x0, 0x0, 0x0, 0x1, 0x0);
 
 		// Generate synchonous exception and go to EL2
 		enter_el2();
@@ -55,6 +286,18 @@ void el3_smc_handler(uint64_t smccall_number){
 				default:
 						print_serial("[EL3] Entered in EL3 but SMC call is not implemented \n");
 						break;
+		}
+}
+
+void el3_fiq_handler(uint32_t INTID){
+		// handle FIQ 
+		// Determine wich exception came
+		if (INTID <16){
+				print_serial("[EL3] SGI interrupt is triggered ... \n");
+		}
+		else
+		{
+				print_serial("[EL3] PPI interrupt is triggered ... \n");
 		}
 }
 
