@@ -181,6 +181,29 @@ generate_sgi_interrupt:
 		msr ICC_SGI0R_EL1, x6
 		ldp x29, x30, [sp, #16]
 		ret
+
+.align 2
+.global enable_timer_interrupt
+.type enable_timer_interrupt, %function
+enable_timer_interrupt:
+		// Enable and Physical timer EL0 for interrupt
+		mov x1, 0x0 // ENABLE = 1, IMASK = 0, ISTATUS = 0
+		msr CNTP_CTL_EL0, x1
+		mov x1, 0x1
+		msr CNTP_CTL_EL0, x1
+		// Write to TVAL to trigger timer
+		msr CNTP_TVAL_EL0, x0
+		ret
+
+.align 2 
+.global ack_timer
+.type ack_timer, %function 
+ack_timer:
+		mov x0, #2
+		msr CNTP_CTL_EL0, x0
+		ret
+
+
 		
 		
 
@@ -227,10 +250,11 @@ current_el3_sp3_fiq:
 		stp x0, x1, [sp, #-16]!
 		// Acknowledge the group 0 interrupt
 		mrs x0, ICC_IAR0_EL1
+		mov x11, x0 // save interrupt number
 		// call the interrupt handler
 		bl el3_fiq_handler
 		// Mark the EOI (End of Interrupt)
-		msr ICC_EOIR0_EL1, x0
+		msr ICC_EOIR0_EL1, x11
 		ldp x29, x30, [sp, #16]
 		ldp x0, x1, [sp, #16]
 	    eret	

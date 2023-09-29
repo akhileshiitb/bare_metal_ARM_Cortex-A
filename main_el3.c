@@ -12,6 +12,10 @@ extern void init_gic_cpu_interface();
 
 extern void generate_sgi_interrupt(uint8_t affinity1, uint8_t affinity2, uint8_t affinity3, uint16_t target, uint8_t INTID);
 
+extern void enable_timer_interrupt(uint32_t tval);
+
+extern uint8_t ack_timer();
+
 // GIC configurations
 //**********************
 // Register definitions 
@@ -212,15 +216,19 @@ void gic_init(){
 		// We configure SGI0 as secure group 0 interrupt 
 		// GROUP setting
 		gic_redistributor_ptr->SGI_PPI.IGROUPR_SGI_PPI &= ~(1<<0);
+		gic_redistributor_ptr->SGI_PPI.IGROUPR_SGI_PPI &= ~(1<<30); // PPI TIMER interrupt
 
 		// Priority settings for SGI0 : give highest priority
 		gic_redistributor_ptr->SGI_PPI.IPRIORITYR[0] &=  0x0;
+		gic_redistributor_ptr->SGI_PPI.IPRIORITYR[7] &=  0x0U; // Highest priority to PPI 30(TIMER)
 
 		// Edge-level triggered: SGI edge triggered 0b10
 		gic_redistributor_ptr->SGI_PPI.ICFGR0 |=  0b10;
+		gic_redistributor_ptr->SGI_PPI.ICFGR1 |=  0b00; // PPI 30 is level-sensitive
 
 		// Enable SGI 0 in redistributor
 		gic_redistributor_ptr->SGI_PPI.ISENABLER0  |= 0x1;
+		gic_redistributor_ptr->SGI_PPI.ISENABLER0  |= (1<<30); // PPI 30 TIMER enable
 		
 		// Configure CPU interface (using System Registers)
 		init_gic_cpu_interface();
@@ -267,6 +275,7 @@ void main_el3(){
 
 		// generate SGI interrupt ID=0
 		generate_sgi_interrupt(0x0, 0x0, 0x0, 0x1, 0x0);
+		enable_timer_interrupt(0x100);
 
 		// Generate synchonous exception and go to EL2
 		enter_el2();
@@ -297,7 +306,9 @@ void el3_fiq_handler(uint32_t INTID){
 		}
 		else
 		{
-				print_serial("[EL3] PPI interrupt is triggered ... \n");
+				print_serial("[EL3] PPI (TIMER) interrupt is triggered ... \n");
+				// ACK timer
+				ack_timer();
 		}
 }
 
